@@ -112,6 +112,7 @@
             lotteryItemsStore().$reset()
         },
 		
+
 		methods: {
 			queryValues(q) { return Object.fromEntries( Object.entries(q).filter(([key, value]) => { return value !== null && value !== undefined && value !== '' && this.query.hasOwnProperty(key) }) ) },
 			setQuery() { try { this.$router.push({ name: this.$route.name, query: this.queryValues(this.query) }) } catch (error) { } },
