@@ -171,9 +171,7 @@
 						return tx                        
 					}.bind(this),
 					callback: async function () {
-						this.$mitt.emit("profile::update")	
-                        //this.$mitt.emit('campaigns::item::update', this.publication.id)	
-						//this.$mitt.emit("item::update", this.publication.id)				
+						this.$mitt.emit("profile::update")				
 					}.bind(this),
 				})				
 			},
@@ -187,7 +185,6 @@
 							winners: this.lottery.winners,
 							maxParticipants: this.lottery.maxParticipants ? parseInt(this.lottery.maxParticipants) : 0,
 							duration: parseInt(this.lottery.duration), // * this.oneDay
-							//duration: 300,
 							startTimestamp: this.$date().unix(),
 							completedTimestamp: 0
 						}	
@@ -201,9 +198,7 @@
 						return tx                        
 					}.bind(this),
 					callback: async function () {
-						//this.$mitt.emit("profile::update")	
-                        //this.$mitt.emit('campaigns::item::update', this.publication.id)	
-						//this.$mitt.emit("item::update", this.publication.id)				
+			
 					}.bind(this),
 				})
 			},			

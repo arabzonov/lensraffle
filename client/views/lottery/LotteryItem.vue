@@ -276,9 +276,7 @@
 						return tx                        
 					}.bind(this),
 					callback: async function () {
-						//this.$mitt.emit("profile::update")	
-                        //this.$mitt.emit('campaigns::item::update', this.publication.id)	
-						//this.$mitt.emit("item::update", this.publication.id)				
+				
 					}.bind(this),
 				})				
 			},
@@ -292,9 +290,7 @@
 						return tx                        
 					}.bind(this),
 					callback: async function () {
-						this.$mitt.emit("profile::update")	
-                        //this.$mitt.emit('campaigns::item::update', this.publication.id)	
-						//this.$mitt.emit("item::update", this.publication.id)				
+						this.$mitt.emit("profile::update")				
 					}.bind(this),
 				})				
 			},
@@ -308,9 +304,7 @@
 						return tx                        
 					}.bind(this),
 					callback: async function () {
-						this.$mitt.emit("profile::update")	
-                        //this.$mitt.emit('campaigns::item::update', this.publication.id)	
-						//this.$mitt.emit("item::update", this.publication.id)				
+						this.$mitt.emit("profile::update")				
 					}.bind(this),
 				})				
 			},
@@ -324,9 +318,7 @@
 						return tx                        
 					}.bind(this),
 					callback: async function () {
-						this.$mitt.emit("profile::update")	
-                        //this.$mitt.emit('campaigns::item::update', this.publication.id)	
-						//this.$mitt.emit("item::update", this.publication.id)				
+						this.$mitt.emit("profile::update")				
 					}.bind(this),
 				})				
 			},

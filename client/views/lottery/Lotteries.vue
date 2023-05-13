@@ -167,14 +167,7 @@
 					let items = [] 					
 					if (lotteriesResp.data.results.length) {							
 						if (this.query.mode === 'exp') {
-							//const doesFollowResp = await lensClient.profile.doesFollow({
-							//	followInfos: lotteriesResp.data.results.map(item => {
-							//		return {
-							//			followerAddress: this.$user.profile.ownedBy,
-							//			profileId: item.lottery.profileId
-							//		}
-							//	})								
-							//})
+
 							const profilesResp = await lensClient.profile.fetchAll({
 								profileIds: [...new Set(lotteriesResp.data.results.map(item => item.lottery.profileId))] 
 							}, this.$user.profile.id);
