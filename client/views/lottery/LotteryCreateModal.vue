@@ -161,6 +161,22 @@
 				this.modalOpened = false
 				this.$mitt.emit('modal::close::' + this.modalId)				
 			},
+
+			async completeTest() {
+				await this.gCallMethod({
+					title: "Complete Test", loader: true, emit: null,
+					method: async function () {		
+						let tx = await this.$web3.lotteryHub.instance.connect(this.$web3.account.signer).completeTest(this.lottery.profileId, '1')						
+						lotteryItemsStore().setLocked(this.lottery.id, true)
+						return tx                        
+					}.bind(this),
+					callback: async function () {
+						this.$mitt.emit("profile::update")	
+                        //this.$mitt.emit('campaigns::item::update', this.publication.id)	
+						//this.$mitt.emit("item::update", this.publication.id)				
+					}.bind(this),
+				})				
+			},
 			
 			async start() {
 				await this.gCallMethod({
