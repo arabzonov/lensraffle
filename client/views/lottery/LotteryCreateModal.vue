@@ -90,3 +90,107 @@
 <style lang="scss" scoped>    
 	//@import '@/scss/variables.scss';	
 </style>
+
+<script>
+	import Modal from '@/views/components/Modal.vue'
+	//import { mapWritableState } from 'pinia';    
+	//import { web3Store } from '@/store/web3.store'     
+	import { lotteryItemsStore } from '@/store/lottery.items.store' 
+    import { utils } from 'ethers';
+
+	export default {
+		components: {
+			Modal,
+		},
+		data() {
+			return {
+				lotteryDefault: {
+					active: true,
+					duration: 600,
+					winners: 3,	
+					maxParticipants: null,
+					prize: 0.01,
+					prizeToken: this.$web3.bcConfig.tokens[0].address
+				},
+				modalId: 'lotteryCreateModal', //promotionCreateModal
+				modalOpened: false,							
+				lensterUrl: LENSTER_URL,				
+				lottery: null,
+				oneDay: 60 * 60 * 24,
+				serviceFee: null,
+				config: null,
+			};
+		},
+		mounted() {
+			this.lottery = JSON.parse(JSON.stringify(this.lotteryDefault))
+			this.$mitt.on(this.modalId + "::open", this.openModal)
+			this.$mitt.on(this.modalId + "::close", this.closeModal)
+			
+		},
+		beforeUnmount() {
+			this.$mitt.off(this.modalId + "::open")
+			this.$mitt.off(this.modalId + "::close")
+		},
+		computed: {
+			prizeTokenList() { return this.$web3.bcConfig.tokens.filter(t => ['MATIC', 'WMATIC', 'WETH', 'USDC', 'DAI'].includes(t.symbol)) },
+            selectedPrizeToken() { return this.prizeTokenList.find(t => t.address === this.lottery.prizeToken) || {} },
+			isLottryInvalid() { return false },
+			toDeduct() {
+				if (!this.lottery.prize || !this.serviceFee) return null
+				return parseFloat(utils.formatEther(this.serviceFee)) + this.lottery.prize 
+			}
+		},
+		methods: {
+			async openModal() {
+				try {
+					await this.getConfig()				                
+					this.$mitt.emit('modal::open::' + this.modalId)
+					this.modalOpened = true	
+				} catch (error) {
+					console.log(error)				
+				}							
+			},
+
+			async getConfig() {	
+				const ad = await this.$web3.lotteryHub.instance.aggregatedData()			
+				this.config = ad._config
+				this.serviceFee = ad._serviceFee
+			},
+
+			closeModal() {
+				this.modalOpened = false
+				this.$mitt.emit('modal::close::' + this.modalId)				
+			},
+			
+			async start() {
+				await this.gCallMethod({
+					title: "Lottery start", loader: true, emit: null,
+					method: async function () {	
+						const lottery = {
+							prize: utils.parseUnits(this.lottery.prize.toString(), this.selectedPrizeToken.decimals),
+							winners: this.lottery.winners,
+							maxParticipants: this.lottery.maxParticipants ? parseInt(this.lottery.maxParticipants) : 0,
+							duration: parseInt(this.lottery.duration), // * this.oneDay
+							//duration: 300,
+							startTimestamp: this.$date().unix(),
+							completedTimestamp: 0
+						}	
+						let tx = await this.$web3.lotteryHub.instance.connect(this.$web3.account.signer).start(this.$user.profile.id, [
+							...Object.values(lottery)
+						], {
+							value: utils.parseEther(this.lottery.prize.toString()).add(this.serviceFee)
+						})	
+						lotteryItemsStore().addOptimisticLottery(lottery, this.$user.profile)				
+						this.closeModal()
+						return tx                        
+					}.bind(this),
+					callback: async function () {
+						//this.$mitt.emit("profile::update")	
+                        //this.$mitt.emit('campaigns::item::update', this.publication.id)	
+						//this.$mitt.emit("item::update", this.publication.id)				
+					}.bind(this),
+				})
+			},			
+		},
+	}
+</script>
