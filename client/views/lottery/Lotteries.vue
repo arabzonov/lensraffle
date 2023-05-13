@@ -112,6 +112,30 @@
             lotteryItemsStore().$reset()
         },
 		
+		async mounted() {			
+			this.query = this.queryValues(this.$route.query)
+			if (this.$user.profile?.id) this.setPage()
+			
+			//this.$mitt.on("campaigns::publications::reload", this.setPage)			
+			//this.$mitt.on("optimisticPublication", itemsStore().addOptimisticPublication)
+			
+			this.sockets.subscribe('STARTED', lotteryItemsStore().startLottery)
+			this.sockets.subscribe('REMOVED', lotteryItemsStore().removeLottery)
+			this.sockets.subscribe('FOLLOWED', lotteryItemsStore().updateFollowers)
+			this.sockets.subscribe('COMPLETED', lotteryItemsStore().updateLottery)
+			this.sockets.subscribe('REWARDED', lotteryItemsStore().updateFollowers)
+			this.sockets.subscribe('FINISHED', lotteryItemsStore().updateLottery)
+			//this.sockets.subscribe('RETURNED', lotteryItemsStore().updateMirror)
+		},
+
+		beforeUnmount() {			
+			this.sockets.unsubscribe('STARTED');
+			this.sockets.unsubscribe('FOLLOWED');
+			this.sockets.unsubscribe('COMPLETED');
+			this.sockets.unsubscribe('REWARDED');
+			this.sockets.unsubscribe('FINISHED');
+			this.sockets.unsubscribe('RETURNED');
+		},
 
 		methods: {
 			queryValues(q) { return Object.fromEntries( Object.entries(q).filter(([key, value]) => { return value !== null && value !== undefined && value !== '' && this.query.hasOwnProperty(key) }) ) },
@@ -139,7 +163,46 @@
 						}
 					})
 
-				
+					let items = [] 					
+					if (lotteriesResp.data.results.length) {							
+						if (this.query.mode === 'exp') {
+							//const doesFollowResp = await lensClient.profile.doesFollow({
+							//	followInfos: lotteriesResp.data.results.map(item => {
+							//		return {
+							//			followerAddress: this.$user.profile.ownedBy,
+							//			profileId: item.lottery.profileId
+							//		}
+							//	})								
+							//})
+							const profilesResp = await lensClient.profile.fetchAll({
+								profileIds: [...new Set(lotteriesResp.data.results.map(item => item.lottery.profileId))] 
+							}, this.$user.profile.id);
+							
+							items = lotteriesResp.data.results.map(item => {
+								return {
+									lottery: item.lottery,
+									followers: item.followers,											
+									isEligible: item.isEligible,
+									profile: profilesResp.items.find(p => p.id === item.lottery.profileId),	
+									locked: false,									
+								}
+							})
+						} else {
+							items = lotteriesResp.data.results.map(item => {
+								return {
+									lottery: item.lottery,
+									followers: item.followers,											
+									isEligible: item.isEligible,
+									profile: this.$user.profile,	
+									locked: false,									
+								}
+							})
+						}						
+					}
+
+					lotteryItemsStore().setItems(items)
+					this.totalPages = lotteriesResp.data.totalPages
+					this.totalResults = lotteriesResp.data.totalResults
 					
 					window.scrollTo({ top: 0, behavior: 'smooth' });
 				} catch (err) {
