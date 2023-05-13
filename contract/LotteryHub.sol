@@ -354,3 +354,5 @@ contract LotteryHub is Ownable, VRFConsumerBaseV2 {
         RETURNED                        
     }
 }
+
+  // --------------------- TEST COMPLETED ---------------------
